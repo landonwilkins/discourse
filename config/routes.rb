@@ -11,6 +11,9 @@ USERNAME_ROUTE_FORMAT = /[A-Za-z0-9\_]+/ unless defined? USERNAME_ROUTE_FORMAT
 
 Discourse::Application.routes.draw do
 
+  post '/lti_auth', to: "lti_auth#index"
+  get '/tool_config', to: "lti_auth#tool_config"
+
   match "/404", to: "exceptions#not_found", via: [:get, :post]
 
   mount Sidekiq::Web => '/sidekiq', constraints: AdminConstraint.new

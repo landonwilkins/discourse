@@ -207,3 +207,6 @@ group :profile do
   # if you need to profile, uncomment out this line
   # gem 'rack-perftools_profiler', require: 'rack/perftools_profiler', platform: :mri_19
 end
+
+# lti integration
+gem 'ims-lti'
