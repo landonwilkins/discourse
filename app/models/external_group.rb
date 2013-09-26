@@ -6,7 +6,8 @@ class ExternalGroup < ActiveRecord::Base
     # possibly use these for what discussion to put them in...
     context_title = tp.context_title.to_s.gsub(/\W/,'')  # "Life Hacking 101"
     context_id = tp.context_id
-    group = Group.create! :name => "#{context_title.slice(0..10)}#{ExternalUser.generate_random_text(3)}"
+    #group = Group.create! :name => "#{context_title.slice(0..10)}#{ExternalUser.generate_random_text(3)}"
+    group = Group.create! :name => context_title.slice(0..50)
     ext_group = ExternalGroup.create!(:opaque_id => context_id, :group_id => group.id)
     ext_group
   end
