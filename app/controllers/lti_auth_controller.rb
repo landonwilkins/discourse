@@ -12,11 +12,11 @@ class LtiAuthController < ApplicationController
   def index
     tp = IMS::LTI::ToolProvider.new('key', 'shared_secret', params)
     tp.valid_request!(request)
-    ext_user = ExternalUser.find_by_opaque_id(tp.user_id) || ExternalUser.create_from_lti(params)
+    ext_user = ExternalUser.find_by_opaque_id(tp.user_id) || ExternalUser.create_from_lti(tp)
     user = ext_user.user
 
     # lookup/create the group for the course context
-    ext_group = ExternalGroup.find_by_opaque_id(tp.context_id) || ExternalGroup.create_from_lti(params)
+    ext_group = ExternalGroup.find_by_opaque_id(tp.context_id) || ExternalGroup.create_from_lti(tp)
     group = ext_group.group
 
     ext_group.ensure_group_membership(user)

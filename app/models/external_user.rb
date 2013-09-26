@@ -11,9 +11,9 @@ class ExternalUser < ActiveRecord::Base
     text
   end
 
-  def self.create_from_lti(params)
-    name      = params[:lis_person_name_full] || "Anonymous+#{generate_random_text(10)}"
-    email     = params[:lis_person_contact_email_primary]  || "#{generate_random_text(50)}@invalid.net"
+  def self.create_from_lti(tp)
+    name      = tp.lis_person_name_full || "Anonymous+#{generate_random_text(10)}"
+    email     = tp.lis_person_contact_email_primary || "#{generate_random_text(50)}@invalid.net"
     password  = generate_random_text(130)
 
     # needs to be unique... content not important
@@ -25,12 +25,12 @@ class ExternalUser < ActiveRecord::Base
       u.password = password
       u.username = username
       u.active = true
-      #u.moderator = true #TODO: if user is a teacher, give moderator privilege
-      #u.admin = true #TODO: if user is a canvas administrator, make then an admin in discourse
+      u.moderator = true if tp.roles.include?("instructor") # if user is a teacher, give moderator privilege
+      u.admin = true if tp.roles.include?("urn:lti:instrole:ims/lis/administrator") # if user is an administrator, make then an admin in discourse
     end
 
     if user.save
-      ExternalUser.create(opaque_id: params[:user_id], user_id: user.id) if user.save
+      ExternalUser.create(opaque_id: tp.user_id, user_id: user.id) if user.save
     else
       nil
       # Raise exception about what was invalid on the model
