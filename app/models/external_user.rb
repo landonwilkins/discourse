@@ -1,22 +1,23 @@
 class ExternalUser < ActiveRecord::Base
   belongs_to :user
   attr_accessible :opaque_id, :user_id
-  
+
+  def self.generate_random_text(length=20)
+    # alpha numeric text with symbols as well.
+    # remove all non-word characters
+    text = SecureRandom.base64(length).gsub(/\W/,'')
+    # force length to desired size if larger
+    text = text.slice(0..length-1) if text.length > length
+    text
+  end
+
   def self.create_from_lti(params)
-    name      = params[:lis_person_name_full]
-    email     = params[:lis_person_contact_email_primary]  # ...
-    password  = params[:oauth_nounce]
+    name      = params[:lis_person_name_full] || "Anonymous+#{generate_random_text(10)}"
+    email     = params[:lis_person_contact_email_primary]  || "#{generate_random_text(50)}@invalid.net"
+    password  = generate_random_text(130)
 
-    # needs to be unique...
-    username  = name.gsub(/\s+/, '')
-
-    # possibly use these for what discussion to put them in...
-    context_title = params[:context_title]  # "Life Hacking 101"
-    context_id = params[:context_id]
-
-
-    # if a discussion with that name exists, join it
-    # else, create a discussion...
+    # needs to be unique... content not important
+    username  = generate_random_text(14)
 
     user = User.new.tap do |u|
       u.name = name
@@ -24,6 +25,8 @@ class ExternalUser < ActiveRecord::Base
       u.password = password
       u.username = username
       u.active = true
+      #u.moderator = true #TODO: if user is a teacher, give moderator privilege
+      #u.admin = true #TODO: if user is a canvas administrator, make then an admin in discourse
     end
 
     if user.save

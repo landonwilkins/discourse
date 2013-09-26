@@ -10,16 +10,30 @@ class LtiAuthController < ApplicationController
   protect_from_forgery :except => :index
 
   def index
-    @tp = IMS::LTI::ToolProvider.new('key', 'shared_secret', params)
-    @tp.valid_request!(request)
-    u = ExternalUser.find_by_opaque_id(@tp.user_id) || ExternalUser.create_from_lti(params)
+    tp = IMS::LTI::ToolProvider.new('key', 'shared_secret', params)
+    tp.valid_request!(request)
+    ext_user = ExternalUser.find_by_opaque_id(tp.user_id) || ExternalUser.create_from_lti(params)
+    user = ext_user.user
+
+    # lookup/create the group for the course context
+    ext_group = ExternalGroup.find_by_opaque_id(tp.context_id) || ExternalGroup.create_from_lti(params)
+    group = ext_group.group
+
+    ext_group.ensure_group_membership(user)
+
+
+    # lookup/create a category for the course
+    # * category should belong to the group.
+    # * permissions prevent non-group members from viewing the category.
+
 
     ##
     # TODO: render error unless u
     #
     ##
 
-    log_on_user u.user if u
+    log_on_user user if user
+    # Redirect to category for desired context category
     redirect_to '/'
   end
 
