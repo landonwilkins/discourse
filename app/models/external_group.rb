@@ -7,11 +7,8 @@ class ExternalGroup < ActiveRecord::Base
     context_title = params[:context_title].to_s.gsub(/\W/,'')  # "Life Hacking 101"
     context_id = params[:context_id]
 
-    group = Group.new :user_id => -1, :name => "#{context_title.slice(0..10)}#{ExternalUser.generate_random_text(3)}"
-    group.save!
+    group = Group.create! :name => "#{context_title.slice(0..10)}#{ExternalUser.generate_random_text(3)}"
     ext_group = ExternalGroup.create!(:opaque_id => context_id, :group_id => group.id)
-    # create a category that matches the group
-    category = group.categories.create!(:user_id => -1, :name => group.name, :read_restricted => true)
     ext_group
   end
 
@@ -20,6 +17,16 @@ class ExternalGroup < ActiveRecord::Base
     if !user.group_users.where(:group_id => self.group_id).exists?
       user.group_users.create(:group_id => self.group_id)
     end
+  end
+
+  def ensure_default_category
+    # lookup/create a category for the course
+    # * category should belong to the group.
+    # * permissions prevent non-group members from viewing the category.
+    group_name = self.group.name
+    category = self.group.categories.where(:name => group_name).first
+    category ||= self.group.categories.create!(:name => group_name, :user_id => -1, :read_restricted => true)
+    category
   end
 
 end

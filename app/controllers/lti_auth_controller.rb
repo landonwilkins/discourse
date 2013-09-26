@@ -20,12 +20,8 @@ class LtiAuthController < ApplicationController
     group = ext_group.group
 
     ext_group.ensure_group_membership(user)
-
-
-    # lookup/create a category for the course
-    # * category should belong to the group.
-    # * permissions prevent non-group members from viewing the category.
-
+    # find/create a category that matches the group
+    category = ext_group.ensure_default_category()
 
     ##
     # TODO: render error unless u
@@ -34,7 +30,7 @@ class LtiAuthController < ApplicationController
 
     log_on_user user if user
     # Redirect to category for desired context category
-    redirect_to '/'
+    redirect_to "/category/#{category.slug}"
   end
 
   #def tool_launch
